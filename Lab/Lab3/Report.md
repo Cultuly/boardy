@@ -34,13 +34,15 @@ index.html index.htm index.nginx-debian.html - Директива задаёт �
 
 ## Вывод dig с подписями
 ### QUESTION SECTION
-student.cultuly.ai-info.ru.  IN   A
+student.cultuly.ai-info.ru.cultuly.ai-info.ru.  IN   A
 ### ANSWER SECTION
-student.cultuly.ai-info.ru. 2 IN   A   158.160.211.61
+student.cultuly.ai-info.ru.cultuly.ai-info.ru. 2 IN   A   158.160.211.61
 ### SERVER
 127.0.0.53#53(127.0.0.53) (UDP)
+
 ![Вывод dig с подписями](screenshots/08-dig.png)
 
 ## Вывод dig +trace
 ### Запрос начался с локального резолвера (127.0.0.53), затем прошёл через корневой сервер m.root-servers.net (170.247.170.2) к TLD-серверу .ru f.dns.ripn.net (194.85.252.62), далее к авторитетному серверу ai-info.ru — ns4.netangels.ru (80.87.101.2), который делегировал поддомен cultuly.ai-info.ru на ns1.yandexcloud.net (84.201.185.208), и тот вернул финальную A-запись: student.cultuly.ai-info.ru.cultuly.ai-info.ru (158.160.211.61)
+
 ![Вывод dig +trace](screenshots/09-dig-trace.png)
