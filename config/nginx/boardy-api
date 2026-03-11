@@ -1,0 +1,18 @@
+server {
+        listen 80;
+        listen [::]:80;
+
+        server_name boardy-api.cultuly.ai-info.ru;
+
+        root /var/www/boardy-api;
+
+        index index.html index.htm index.nginx-debian.html;
+
+
+        location / {
+                try_files $uri $uri/ =404;
+        }
+
+        access_log /var/log/nginx/boardy-api-access.log;
+        error_log  /var/log/nginx/boardy-api-error.log;
+}
