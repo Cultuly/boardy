@@ -8,15 +8,15 @@
 ![alt text](screenshots/03-nginx-cgi.png)
 
 ## fastcgi_pass 
-указывает, куда Nginx должен передавать запросы для обработки FastCGI 
+Указывает, куда Nginx должен передавать запросы для обработки FastCGI 
 unix: - означает использование Unix-сокета
 /var/run/fcgiwrap.socket - путь к сокету, через который работает FastCGI-процесс
 
 ## include fastcgi_params 
-подключает стандартный файл с параметрами FastCGI
+Подключает стандартный файл с параметрами FastCGI
 
 ## SCRIPT_FILENAME 
-определяет полный путь к исполняемому CGI-скрипту на сервере
+Определяет полный путь к исполняемому CGI-скрипту на сервере
 
 # Вывод curl -X POST -d "name=...&message=..."
 ![alt text](screenshots/04-curl-submit.png)
@@ -34,11 +34,60 @@ unix: - означает использование Unix-сокета
 # Полный цикл
 ![alt text](screenshots/08-full-cycle.png)
 
-![alt text](screenshots/08-full-cycle-2.png)
-
-![alt text](screenshots/08-full-cycle-3.png)
+# Pull request на гите
+![alt text](screenshots/09-pull-request.png)
 
 # Путь запроса
+```
+┌─────────────┐
+│   БРАУЗЕР   │
+└──────┬──────┘
+       │ POST /cgi-bin/submit.sh
+       │ HTTPS (шифрование)
+       ▼
+┌─────────────┐
+│    NGINX    │ ← location /cgi-bin/
+└──────┬──────┘   fastcgi_pass
+       │ FastCGI запись
+       │ (переменные окружения + POST data)
+       ▼
+┌─────────────┐
+│  FCGIWRAP   │ ← Unix socket
+└──────┬──────┘
+       │ fork() + exec()
+       │ Переменные окружения
+       │ POST data → stdin
+       ▼
+┌─────────────┐
+│  submit.sh  │
+│ (CGI script)│
+└──────┬──────┘
+       │
+       ├─── stdin  ← данные формы
+       │    │
+       │    ▼
+       │  Обработка
+       │    │
+       │    ▼
+       │  messages.txt (запись на диск)
+       │
+       └─── stdout → "Content-Type: text/html\n\nOK"
+             │
+             ▼
+       ┌─────────────┐
+       │  FCGIWRAP   │
+       └──────┬──────┘
+              │ FastCGI ответ
+              ▼
+       ┌─────────────┐
+       │    NGINX    │
+       └──────┬──────┘
+              │ HTTPS ответ
+              ▼
+       ┌─────────────┐
+       │   БРАУЗЕР   │ ← Отображение результата
+       └─────────────┘
+```
 
 # Теоретические вопросы
 1. Что такое CGI и какую проблему он решил в 1993 году?
