@@ -32,6 +32,17 @@ server {
 	include fastcgi_params;
 	fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
     }
+
+    location /phpmyadmin {
+        alias /usr/share/phpmyadmin;
+        index index.php;
+
+        location ~ \.php$ {
+            fastcgi_pass unix:/var/run/php/php-fpm.sock;
+            include fastcgi_params;
+            fastcgi_param SCRIPT_FILENAME $request_filename;
+        }
+    }
 	
     #location /cgi-bin/ {
 	#gzip off;
