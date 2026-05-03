@@ -1,77 +1,53 @@
 <?php
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
+    'secure' => true,
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);
+session_start();
 
-require_once 'db.php';
-
-
-$name = $_POST['name'] ?? '';
-
-$message = $_POST['message'] ?? '';
-
-
-if ($name && $message) {
-
-// Ищем или создаём пользователя
-
-$stmt = $pdo->prepare('SELECT id FROM users WHERE name = ?');
-
-$stmt->execute([$name]);
-
-$user = $stmt->fetch();
-
-
-if (!$user) {
-
-$stmt = $pdo->prepare(
-
-'INSERT INTO users (name, email, password) VALUES (?, ?, ?)'
-
-);
-
-$stmt->execute([$name, $name.'@boardy.local', 'temp']);
-
-$user_id = $pdo->lastInsertId();
-
-} else {
-
-$user_id = $user['id'];
-
+if (empty($_SESSION['user_id'])) {
+    header('Location: /login.php');
+    exit;
 }
 
+require __DIR__ . '/db.php';
 
-// Создаём пост (prepared statement!)
+$error = '';
 
-$stmt = $pdo->prepare(
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $body = $_POST['body'] ?? '';
 
-'INSERT INTO posts (title, body, author_id) VALUES (?, ?, ?)'
+    if (!$body) {
+        $error = 'Введите текст сообщения';
+    } else {
+        $stmt = $pdo->prepare(
+            'INSERT INTO posts (title, body, author_id) VALUES (?, ?, ?)'
+        );
+        $stmt->execute(['Пост', $body, $_SESSION['user_id']]);
 
-);
-
-$stmt->execute(['Сообщение', $message, $user_id]);
-
+        header('Location: /messages.php');
+        exit;
+    }
 }
-
 ?>
 
-<!DOCTYPE html>
-
-<html lang="ru">
-
-<head><meta charset="utf-8"><title>Boardy</title>
-
-<link rel="stylesheet" href="/css/style.css"></head>
-
-<body>
-
-<header><h1><a href="/">Boardy</a></h1></header>
+<?php include __DIR__ . '/partials/head.php'; ?>
+<?php include __DIR__ . '/partials/nav.php'; ?>
 
 <main>
+    <h1>Новый пост</h1>
 
-<h2>Спасибо, <?= htmlspecialchars($name) ?>!</h2>
+    <?php if ($error): ?>
+        <p style="color:red;"><?= htmlspecialchars($error) ?></p>
+    <?php endif; ?>
 
-<p><a href="/">На главную</a> |
-
-<a href="/messages.php">Все сообщения</a></p>
-
+    <form method="POST">
+        <textarea name="body" placeholder="Текст сообщения"></textarea>
+        <button type="submit">Опубликовать</button>
+    </form>
 </main>
 
-</body></html>
+<?php include __DIR__ . '/partials/foot.php'; ?>
