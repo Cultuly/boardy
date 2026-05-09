@@ -27,6 +27,9 @@ ON DELETE CASCADE - автоматически удалит все зависи�
 
 ## SELECT + JOIN
 ![alt text](screenshots/09-join.png)
+JOIN используется для объединения данных из нескольких таблиц по связанному полю (foreign key).
+Без JOIN мы можем получить только author_id, но не можем узнать имя автора.
+JOIN позволяет получить имя пользователя из таблицы users, сопоставив posts.author_id и users.id.
 
 ## Foreign Key — защита целостности
 ![alt text](screenshots/10-fk-error.png)
