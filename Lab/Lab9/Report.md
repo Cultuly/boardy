@@ -31,11 +31,6 @@ GET: 200 OK, запрос успешно выполнен и клиент пол
 
 ![alt text](screenshots/06-errors.png)
 
-![alt text](screenshots/06-errors-1.png)
-
-![alt text](screenshots/06-errors-2.png)
-
-![alt text](screenshots/06-errors-3.png)
 404 Not Found означает, что ресурс указанный в запрсое не найден, то есть его скорее всего нет в бд (в нашем случае посты, коменты).
 422 Unprocessable Entity означает, что сервер понял запрос, но данные не прошли проверку.
 
