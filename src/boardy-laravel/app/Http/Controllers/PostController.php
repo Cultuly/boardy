@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class PostController extends Controller
 {
@@ -30,22 +32,34 @@ class PostController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    * Store a newly created resource in storage.
+    */
+    public function store(Request $request) 
     {
         $this->authorize('create', Post::class);
 
         $data = $request->validate([
             'title' => 'required|string|max:200',
             'body' => 'required|string|max:5000',
-    ]);
+        ]);
 
-    $post = $request->user()->posts()->create($data);
+        $post = $request->user()->posts()->create($data);
 
-    return redirect()
-        ->route('posts.show', $post)
-        ->with('success', 'Пост создан');
+        try { 
+            Http::timeout(2)->post('http://localhost:8000/internal/broadcast', [ 
+                'id'         => $post->id, 
+                'title'      => $post->title, 
+                'body'       => $post->body, 
+                'author'     => $request->user()->name,
+                'created_at' => $post->created_at->toISOString(), 
+            ]); 
+        } catch (\Exception $e) { 
+            Log::warning('WS broadcast failed: ' . $e->getMessage()); 
+        } 
+
+        return redirect()
+            ->route('posts.show', $post)
+            ->with('success', 'Пост создан');
     }
 
     /**

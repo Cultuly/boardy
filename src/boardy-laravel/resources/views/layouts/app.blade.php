@@ -32,7 +32,6 @@
 
         {{-- Main content --}}
         <main class="flex-1 py-8">
-
             <div class="max-w-5xl mx-auto px-4">
 
                 {{-- Flash messages --}}
@@ -63,12 +62,9 @@
                 <div class="bg-white shadow-sm rounded-2xl p-6">
                     @yield('content')
                 </div>
-
             </div>
-
         </main>
-
     </div>
-
+    @stack('scripts')
 </body>
 </html>
