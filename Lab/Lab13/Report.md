@@ -84,6 +84,9 @@ Python-клиент пишет connected и соединение открыто
 
 # 10. Переподключение WS соединения:
 ![](screenshots/10-reconnect.png)
+![](screenshots/10.1-reconnect.png)
+## Пояснение:
+Открытое и закрытое соединения
 
 # 11. WS - проксирование:
 ![](screenshots/11-nginx-ws.png)
