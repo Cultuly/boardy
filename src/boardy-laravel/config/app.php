@@ -39,7 +39,7 @@ return [
     |
     */
 
-    'debug' => (bool) env('APP_DEBUG', false),
+    'debug' => (bool) env('APP_DEBUG', True),
 
     /*
     |--------------------------------------------------------------------------
@@ -122,9 +122,7 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
-
-
-    'fastapi_domain' => env('FASTAPI_DOMAIN', 'localhost:8000')
+	
+    'domain' => env('APP_DOMAIN', 'localhost'), 
 
 ];
-

@@ -2,21 +2,35 @@
 
 namespace App\Models;
 
-use App\Models\Post;
-use App\Models\Comment;
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Laravel\Passport\HasApiTokens;
+use Laravel\Passport\Contracts\OAuthenticatable;
 
-class User extends Authenticatable
+
+#[Fillable(['name', 'email', 'password'])]
+#[Hidden(['password', 'remember_token'])]
+class User extends Authenticatable implements OAuthenticatable
 {
-    use HasFactory, Notifiable;
+    /** @use HasFactory<UserFactory> */
+    use HasApiTokens, HasFactory, Notifiable;
 
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected $fillable = [
         'name',
         'email',
         'password',
-        'github_id',
+	'github_id',
     ];
 
     protected $hidden = [
@@ -32,13 +46,8 @@ class User extends Authenticatable
         ];
     }
 
-    public function posts()
+    public function posts(): HasMany
     {
-        return $this->hasMany(Post::class);
-    }
-
-    public function comments()
-    {
-        return $this->hasMany(Comment::class);
+        return $this->hasMany(Post::class)->latest();
     }
 }

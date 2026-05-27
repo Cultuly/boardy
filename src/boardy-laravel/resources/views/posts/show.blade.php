@@ -3,107 +3,53 @@
 @section('title', $post->title)
 
 @section('content')
+    {{-- Отображение поста --}}
+    <article style="padding:1.5rem;border:1px solid #eee;border-radius:4px;margin-bottom:2rem;">
+        <h1 style="margin:0 0 0.5rem;">{{ $post->title }}</h1>
+        
+        <div style="color:#666;font-size:0.9rem;margin-bottom:1rem;">
+            Автор: <strong>{{ $post->author->name }}</strong> · 
+            {{ $post->created_at->format('d.m.Y H:i') }}
+            @if ($post->created_at != $post->updated_at)
+                · обновлено {{ $post->updated_at->format('d.m.Y H:i') }}
+            @endif
+        </div>
 
-<article>
-    <h1>{{ $post->title }}</h1>
+        <div style="white-space:pre-wrap;line-height:1.6;">
+            {{ $post->body }}
+        </div>
 
-    <p>{{ $post->body }}</p>
-
-    <small>
-        Автор: {{ $post->author->name }}
-        ·
-        {{ $post->created_at->format('d.m.Y H:i') }}
-    </small>
-</article>
-
-@can('update', $post)
-    <a href="{{ route('posts.edit', $post) }}">
-        Редактировать
-    </a>
-@endcan
-
-@can('delete', $post)
-    <form method="POST" action="{{ route('posts.destroy', $post) }}">
-        @csrf
-        @method('DELETE')
-
-        <button type="submit">
-            Удалить
-        </button>
-    </form>
-@endcan
-
-<hr>
-
-<h2>Комментарии</h2>
-
-@forelse ($post->comments as $comment)
-
-    <div>
-        <p>{{ $comment->body }}</p>
-
-        <small>
-            {{ $comment->author->name }}
-            ·
-            {{ $comment->created_at->format('d.m.Y H:i') }}
-        </small>
-
-        @can('delete', $comment)
-            <form
-                method="POST"
-                action="{{ route('comments.destroy', $comment) }}"
-            >
-                @csrf
-                @method('DELETE')
-
-                <button type="submit">
-                    Удалить
-                </button>
-            </form>
+        {{-- Кнопки редактирования/удаления — только для автора поста --}}
+        @can('update', $post)
+            <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid #eee;">
+                <a href="{{ route('posts.edit', $post) }}" 
+                   style="display:inline-block;padding:0.5rem 1rem;background:#007bff;color:white;text-decoration:none;border-radius:4px;">
+                    Редактировать
+                </a>
+                <form action="{{ route('posts.destroy', $post) }}" method="POST" 
+                      style="display:inline;margin-left:0.5rem;"
+                      onsubmit="return confirm('Удалить пост?')">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" 
+                            style="padding:0.5rem 1rem;background:#dc3545;color:white;border:none;border-radius:4px;cursor:pointer;">
+                        Удалить
+                    </button>
+                </form>
+            </div>
         @endcan
+    </article>
+
+    {{-- Комментарии --}}
+    <div id="comments-root"
+        data-post-id="{{ $post->id }}"
+        data-user-name="{{ auth()->user()?->name }}"
+        data-user-id="{{ auth()->id() }}">
     </div>
 
-    <hr>
+@vite('resources/js/comments.jsx')
 
-@empty
-
-    <p>Комментариев пока нет.</p>
-
-@endforelse
-
-@auth
-
-<h3>Добавить комментарий</h3>
-
-<form method="POST" action="{{ route('comments.store') }}">
-
-    @csrf
-
-    <input
-        type="hidden"
-        name="post_id"
-        value="{{ $post->id }}"
-    >
-
-    <div>
-        <textarea
-            name="body"
-            rows="5"
-        >{{ old('body') }}</textarea>
-
-        @error('body')
-            <p>{{ $message }}</p>
-        @enderror
-    </div>
-
-    <br>
-
-    <button type="submit">
-        Отправить
-    </button>
-
-</form>
-
-@endauth
-
+    <p style="margin-top:2rem;">
+        <a href="{{ route('posts.index') }}" style="color:#007bff;">← Назад к списку постов</a>
+    </p>
 @endsection

@@ -42,14 +42,17 @@
             <x-primary-button class="ms-3">
                 {{ __('Log in') }}
             </x-primary-button>
-
         </div>
+	{{-- После формы входа, перед ссылкой "Забыли пароль?" --}}
+<div style="text-align:center;margin:1.5rem 0;">
+    <span style="color:#666;">или</span>
+</div>
+
+<a href="{{ route('auth.github') }}" 
+   style="display:flex;align-items:center;justify-content:center;gap:0.5rem;
+          padding:0.5rem 1rem;background:#24292e;color:white;
+          text-decoration:none;border-radius:4px;font-weight:500;">
+    Войти через GitHub
+</a>
     </form>
-    <div class="mt-6 text-center">
-            <a href="{{ route('auth.github') }}">
-                <x-primary-button>
-                Войти через GitHub
-                </x-primary-button>
-            </a>
-        </div> 
 </x-guest-layout>

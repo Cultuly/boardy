@@ -14,13 +14,6 @@ return [
     |
     */
 
-    'github' => [
-        'client_id' => env('GITHUB_CLIENT_ID'),
-        'client_secret' => env('GITHUB_CLIENT_SECRET'),
-        'redirect' => env('GITHUB_REDIRECT_URI'),
-    ],
-
-
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],
@@ -42,4 +35,15 @@ return [
         ],
     ],
 
+   'github' => [
+    	'client_id'     => env('GITHUB_CLIENT_ID'),
+    	'client_secret' => env('GITHUB_CLIENT_SECRET'),
+    	'redirect'      => env('GITHUB_REDIRECT_URI'),
+
+    ],
+
+   'passport' => [
+        'client_id' => env('PASSPORT_CLIENT_ID'),
+        'redirect'  => env('PASSPORT_REDIRECT_URI'),
+    ],  
 ];

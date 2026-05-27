@@ -1,104 +1,124 @@
 @extends('layouts.app')
 
-@section('title', 'Посты')
+@section('title', 'Все посты')
 
 @section('content')
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h1>Все посты</h1>
+        @auth
+            <a href="{{ route('posts.create') }}" id="create-post-btn"
+               style="padding: 0.5rem 1rem; background: #10b981; color: white; text-decoration: none; border-radius: 0.25rem; font-weight: 500;">
+                Создать пост
+            </a>
+        @endauth
+    </div>
 
-<h1>Все посты</h1>
+    @auth
+        {{-- Кнопка показывается только если в sessionStorage ещё нет access_token --}}
+        <div id="oauth-login-box" style="display: none; margin-bottom: 1rem; padding: 0.75rem 1rem; background: #f1f5f9; border-radius: 0.25rem;">
+            Чтобы оставлять комментарии — получите OAuth-токен (PKCE flow):
+            <button id="login-btn"
+                    style="margin-left: 0.5rem; padding: 0.4rem 0.9rem; background: #3b82f6; color: white;
+                           border: none; border-radius: 0.25rem; cursor: pointer; font-weight: 500;">
+                Войти через OAuth
+            </button>
+        </div>
+    @endauth
 
-{{-- 1. Добавляем обертку с id="posts-feed", которая нужна для JS --}}
-<div id="posts-feed">
-    @forelse ($posts as $post)
+    <div id="posts-feed">
+        @forelse ($posts as $post)
+            <article>
+                <h3>
+                    <a href="{{ route('posts.show', $post) }}">{{ $post->title }}</a>
+                </h3>
+                <p>{{ Str::limit($post->body, 200) }}</p>
+                <small>
+                    Автор: {{ $post->author->name }} ·
+                    {{ $post->created_at->format('d.m.Y H:i') }}
+                </small>
+            </article>
+        @empty
+            <p class="text-center text-gray-500">Постов пока нет.</p>
+        @endforelse
+    </div>
 
-        {{-- 2. Объединяем стили: добавили class="card" из JS-примера --}}
-        <article class="card">
-            <h2>
-                <a href="{{ route('posts.show', $post) }}">
-                    {{ $post->title }}
-                </a>
-            </h2>
+    @if ($posts->hasPages())
+        <div style="margin-top:1rem;">
+            {{ $posts->links() }}
+        </div>
+    @endif
 
-            <p>{{ $post->body }}</p>
+    {{-- PKCE login: только для залогиненных в Laravel, и только если ещё нет OAuth-токена --}}
+    @auth
+        <script type="module">
+            import { startLogin, handleCallback } from '/js/auth.js';
 
-            <small>
-                Автор: {{ $post->author->name }}
-                ·
-                {{ $post->created_at->format('d.m.Y H:i') }}
-            </small>
-        </article>
+            handleCallback().then(token => {
+                if (token) {
+                    sessionStorage.setItem('access_token', token);
+                    document.getElementById('oauth-login-box')?.style.setProperty('display', 'none');
+                }
+            }).catch(err => console.error('OAuth callback error:', err));
 
-        <hr>
+            if (!sessionStorage.getItem('access_token')) {
+                document.getElementById('oauth-login-box')?.style.setProperty('display', 'block');
+            }
 
-    @empty
+            document.getElementById('login-btn')?.addEventListener('click', () => {
+                startLogin();
+            });
+        </script>
+    @endauth
 
-        {{-- Добавили id, чтобы JS мог легко удалить эту надпись, когда прилетит первый реальный пост --}}
-        <p id="no-posts">Постов пока нет.</p>
+    {{-- WebSocket: посты в реалтайме видны всем (и гостям, и авторизованным) --}}
+    <script>
+        (function () {
+            const wsUrl = 'wss://boardy-api.cultuly.ai-info.ru/ws';
+            let ws = null;
 
-    @endforelse
-</div>
+            function connect() {
+                ws = new WebSocket(wsUrl);
 
-{{ $posts->links() }}
+                ws.onopen = () => console.log('WS connected');
 
+                ws.onmessage = (event) => {
+                    const msg = JSON.parse(event.data);
+                    if (msg.type === 'new_post') {
+                        prependPost(msg.post);
+                    }
+                };
+
+                ws.onclose = () => {
+                    console.log('WS closed, reconnecting in 3s...');
+                    setTimeout(connect, 3000);
+                };
+
+                ws.onerror = (e) => console.error('WS error', e);
+            }
+
+            function prependPost(post) {
+                const feed = document.getElementById('posts-feed');
+                if (!feed) return;
+
+                const article = document.createElement('article');
+                article.innerHTML = `
+                    <h3><a href="/posts/${post.id}">${escapeHtml(post.title)}</a></h3>
+                    <p>${escapeHtml(post.body)}</p>
+                    <small>
+                        Автор: ${escapeHtml(post.author)} ·
+                        только что
+                    </small>
+                `;
+                feed.prepend(article);
+            }
+
+            function escapeHtml(str) {
+                const d = document.createElement('div');
+                d.textContent = str;
+                return d.innerHTML;
+            }
+
+            connect();
+        })();
+    </script>
 @endsection
-@push('scripts')
-<script> 
-@if(app()->environment('production')) 
-const wsUrl = 'wss://{{ config("app.fastapi_domain") }}/ws' 
-@else 
-const wsUrl = 'ws://localhost:8000/ws' 
-@endif 
- 
-function connect() { 
-    const ws = new WebSocket(wsUrl) 
-    ws.onopen    = () => console.log('WS connected') 
-    ws.onmessage = (e) => {
-        console.log("WebSocket событие:", JSON.parse(e.data)); 
-        const msg = JSON.parse(e.data) 
-        if (msg.type === 'new_post') prependPost(msg.post) 
-    } 
-    ws.onclose = () => setTimeout(connect, 3000) 
-} 
- 
-function prependPost(post) {
-    const feed = document.getElementById('posts-feed');
-    if (!feed) return;
-
-    const noPostsMessage = document.getElementById('no-posts');
-    if (noPostsMessage) noPostsMessage.remove();
-
-    const el = document.createElement('article');
-    el.className = 'card';
-    
-    const postUrl = "https://boardy.cultuly.ai-info.ru/posts/:id".replace(':id', post.id);
-
-    // Заменяем post.body на post.content (как в базе данных Laravel)
-    // И подставляем имя автора (в зависимости от того, как вы передаете его из Laravel. 
-    // Если Laravel передает связь, это может быть post.user.name, если нет — используйте post.user_id или подпорку)
-    const postContent = post.content || post.body || '';
-    const postAuthor = (post.user && post.user.name) || post.author || 'Загрузка...';
-
-    el.innerHTML = `
-        <h2>
-            <a href="${postUrl}">${escapeHtml(post.title)}</a>
-        </h2>
-        <p>${escapeHtml(postContent)}</p>
-        <small>Автор: ${escapeHtml(postAuthor)} · Только что</small>
-    `;
-
-    // Создаем элемент разделителя, чтобы верстка не ломалась
-    const hr = document.createElement('hr');
-
-    // Добавляем сначала карточку, а затем разделитель в начало ленты
-    feed.prepend(hr);
-    feed.prepend(el);
-}
- 
-function escapeHtml(str) { 
-    const d = document.createElement('div') 
-    d.textContent = str 
-    return d.innerHTML 
-} 
- 
-connect() 
-</script> 
-@endpush
