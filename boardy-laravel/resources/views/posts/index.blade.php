@@ -4,7 +4,7 @@
 
 @section('content')
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h1>Все посты</h1>
+        <h1>-- Все посты --</h1>
         @auth
             <a href="{{ route('posts.create') }}" id="create-post-btn"
                style="padding: 0.5rem 1rem; background: #10b981; color: white; text-decoration: none; border-radius: 0.25rem; font-weight: 500;">
