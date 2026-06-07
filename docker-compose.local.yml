@@ -18,8 +18,10 @@ services:
     volumes:
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       - ./boardy-laravel:/var/www/html
+      # перекрываем прод-маунт laravel_public на хостовый public + том со сборкой
       - ./boardy-laravel/public:/var/www/html/public:ro
       - laravel_build:/var/www/html/public/build:ro
 
 volumes:
   laravel_build:
+  
