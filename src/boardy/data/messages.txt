@@ -1,0 +1,5 @@
+2026-03-29 17:25:15|Ivanov|Hello World
+2026-03-29 17:27:56|Kirill Harchenko|Some message
+2026-03-29 17:33:36|Senior pomidor|300k in nanosec
+2026-04-01 19:28:06|URFU_STUDENT|Well Well Well
+2026-04-01 20:18:23|Ivanov|PHP works
